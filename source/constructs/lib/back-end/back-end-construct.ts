@@ -10,7 +10,7 @@ import { LogGroup, RetentionDays } from '@aws-cdk/aws-logs';
 import { Bucket, IBucket } from '@aws-cdk/aws-s3';
 import { ArnFormat, Aws, Construct, Duration, Lazy, Stack } from '@aws-cdk/core';
 import { CloudFrontToApiGatewayToLambda } from '@aws-solutions-constructs/aws-cloudfront-apigateway-lambda';
-
+import * as cloudfront from '@aws-cdk/aws-cloudfront';
 import { addCfnSuppressRules } from '../../utils/utils';
 import { SolutionConstructProps } from '../types';
 
@@ -27,6 +27,7 @@ export interface BackEndProps extends SolutionConstructProps {
 
 export class BackEnd extends Construct {
   public domainName: string;
+  public cloudFrontWebDistribution: cloudfront.Distribution;
 
   constructor(scope: Construct, id: string, props: BackEndProps) {
     super(scope, id);
@@ -170,5 +171,6 @@ export class BackEnd extends Construct {
     imageHandlerCloudFrontApiGatewayLambda.apiGateway.node.tryRemoveChild('Endpoint'); // we don't need the RestApi endpoint in the outputs
 
     this.domainName = imageHandlerCloudFrontApiGatewayLambda.cloudFrontWebDistribution.distributionDomainName;
+    this.cloudFrontWebDistribution = imageHandlerCloudFrontApiGatewayLambda.cloudFrontWebDistribution;
   }
 }

@@ -248,6 +248,7 @@ export class ServerlessImageHandlerStack extends Stack {
     };
 
     /* eslint-disable no-new */
+    new CfnOutput(this, 'DomainName', { value: backEnd.domainName, description: 'Domain of the underlying CloudFront distribtion' });
     new CfnOutput(this, 'ApiEndpoint', { value: `https://${backEnd.domainName}`, description: 'Link to API endpoint for sending image requests to.' });
     new CfnOutput(this, 'DemoUrl', {
       value: `https://${frontEnd.domainName}/index.html`,

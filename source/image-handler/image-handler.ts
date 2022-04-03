@@ -20,6 +20,8 @@ export class ImageHandler {
   async process(imageRequestInfo: ImageRequestInfo): Promise<string> {
     const { originalImage, edits } = imageRequestInfo;
 
+    console.log(imageRequestInfo);
+
     let base64EncodedImage = '';
 
     if (edits && Object.keys(edits).length) {
@@ -32,6 +34,11 @@ export class ImageHandler {
         image = metadata.orientation
           ? sharp(originalImage, { failOnError: false }).withMetadata({ orientation: metadata.orientation })
           : sharp(originalImage, { failOnError: false }).withMetadata();
+      }
+
+      if (edits.frameWith !== undefined && edits.frameWith !== null) {
+        edits.frameWith.bucket  = imageRequestInfo.bucket;
+        edits.frameWith.key  = imageRequestInfo.key;
       }
 
       const modifiedImage = await this.applyEdits(image, edits);
@@ -85,7 +92,28 @@ export class ImageHandler {
     // Apply the image edits
     for (const edit in edits) {
       switch (edit) {
-        case 'overlayWith': {
+
+          // frameWith - Added by andy@privateauto.com
+          case 'frameWith': {            
+            // const originalMetadata: sharp.Metadata = await originalImage.metadata();
+            let imageMetadata: sharp.Metadata = await originalImage.metadata();
+
+            if (edits.resize) {
+              const imageBuffer = await originalImage.toBuffer();
+              const resizeOptions: ResizeOptions = edits.resize;
+  
+              imageMetadata = await sharp(imageBuffer).resize(resizeOptions).metadata();
+            }
+
+            const { bucket, key, options } = edits.frameWith;
+            console.log(`frameWith: ${bucket}:${key}`);
+            const overlay = await this.getOverlayImage(bucket, key, "100", "100", '0', imageMetadata);
+            const overlayOption: OverlayOptions = { ...options, fit: 'contain', input: overlay };
+              originalImage.composite([overlayOption]);
+            break;
+            }
+
+          case 'overlayWith': {
           let imageMetadata: sharp.Metadata = await originalImage.metadata();
 
           if (edits.resize) {

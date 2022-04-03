@@ -258,6 +258,11 @@ export class ThumborMapper {
         }
         break;
       }
+      case 'frame': {
+        // const options = filterValue.replace(/\s+/g, '').split(',');
+        currentEdits.frameWith = { };
+        break;
+      }
     }
 
     return currentEdits;

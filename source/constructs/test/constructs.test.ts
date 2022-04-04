@@ -4,6 +4,7 @@
 import '@aws-cdk/assert/jest';
 import { SynthUtils } from '@aws-cdk/assert';
 import { App } from '@aws-cdk/core';
+import process from 'process';
 
 import { ServerlessImageHandlerStack } from '../lib/serverless-image-stack';
 
@@ -11,6 +12,7 @@ test('Serverless Image Handler Stack Snapshot', () => {
   const app = new App();
 
   const stack = new ServerlessImageHandlerStack(app, 'TestStack', {
+    env: { account: process.env.AWS_ACCOUNTNO, region: process.env.REGION },
     description: 'Serverless Image Handler Stack',
     solutionId: 'S0ABC',
     solutionName: 'sih',

@@ -27,6 +27,7 @@ const getProps = (): ServerlessImageHandlerStackProps => {
   const description = `(${solutionId}) - ${solutionDisplayName}. Version ${solutionVersion}`;
 
   return {
+    env: { account: process.env.AWS_ACCOUNTNO, region: process.env.REGION },
     description,
     solutionId,
     solutionName,

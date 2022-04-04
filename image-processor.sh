@@ -5,13 +5,14 @@ export REGION=us-east-2
 export BUCKET_PREFIX=pa-build-cache-ops
 export BUCKET_NAME=$BUCKET_PREFIX-$REGION 
 export SOLUTION_NAME=PrivateAutoImageProcessing
-export VERSION=1.0.1
+export VERSION=1.0.2
 
+export AWS_ACCOUNTNO=`aws sts get-caller-identity --query Account --output text`
+export AWS_REGION=$REGION
 
 cd $MAIN_DIRECTORY/deployment
 chmod +x run-unit-tests.sh
 ./run-unit-tests.sh
-
 
 cd $MAIN_DIRECTORY/deployment
 chmod +x build-s3-dist.sh

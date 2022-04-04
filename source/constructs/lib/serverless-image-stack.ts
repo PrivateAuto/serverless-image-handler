@@ -2,15 +2,18 @@
 // SPDX-License-Identifier: Apache-2.0
 
 import { PriceClass } from '@aws-cdk/aws-cloudfront';
-import { Aspects, Aws, CfnMapping, CfnOutput, CfnParameter, Construct, Stack, StackProps, Tags } from '@aws-cdk/core';
+import { Aspects, Aws, CfnMapping, CfnOutput, CfnParameter, Construct, Environment, Stack, StackProps, Tags } from '@aws-cdk/core';
 
 import { SuppressLambdaFunctionCfnRulesAspect } from '../utils/aspects';
 import { BackEnd } from './back-end/back-end-construct';
 import { CommonResources } from './common-resources/common-resources-construct';
 import { FrontEndConstruct as FrontEnd } from './front-end/front-end-construct';
 import { SolutionConstructProps, YesNo } from './types';
+import process from 'process';
+
 
 export interface ServerlessImageHandlerStackProps extends StackProps {
+  readonly env: Environment;
   readonly description: string;
   readonly solutionId: string;
   readonly solutionName: string;
@@ -22,6 +25,18 @@ export interface ServerlessImageHandlerStackProps extends StackProps {
 export class ServerlessImageHandlerStack extends Stack {
   constructor(scope: Construct, id: string, props: ServerlessImageHandlerStackProps) {
     super(scope, id, props);
+
+    const subDomainNameParameter = new CfnParameter(this, 'SubDomainNameParameter', {
+      type: 'String',
+      description: `subdomain for the Alternate domain name for the distribution.`,
+      default: ''
+    });
+
+    const baseDomainNameParameter = new CfnParameter(this, 'BaseDomainNameParameter', {
+      type: 'String',
+      description: `Base domain for the Alternate domain name for the distribution.`,
+      default: ''
+    });
 
     const corsEnabledParameter = new CfnParameter(this, 'CorsEnabledParameter', {
       type: 'String',
@@ -129,6 +144,8 @@ export class ServerlessImageHandlerStack extends Stack {
     const sourceCodeKeyPrefix = solutionMapping.findInMap('Config', 'S3KeyPrefix');
 
     const solutionConstructProps: SolutionConstructProps = {
+      subDomainName: subDomainNameParameter.valueAsString,
+      baseDomainName: baseDomainNameParameter.valueAsString,      
       corsEnabled: corsEnabledParameter.valueAsString,
       corsOrigin: corsOriginParameter.valueAsString,
       sourceBuckets: sourceBucketsParameter.valueAsString,
@@ -140,7 +157,7 @@ export class ServerlessImageHandlerStack extends Stack {
       secretsManagerKey: secretsManagerKeyParameter.valueAsString,
       enableDefaultFallbackImage: enableDefaultFallbackImageParameter.valueAsString as YesNo,
       fallbackImageS3Bucket: fallbackImageS3BucketParameter.valueAsString,
-      fallbackImageS3KeyBucket: fallbackImageS3KeyParameter.valueAsString
+      fallbackImageS3KeyBucket: fallbackImageS3KeyParameter.valueAsString,
     };
 
     const commonResources = new CommonResources(this, 'CommonResources', {
@@ -195,6 +212,14 @@ export class ServerlessImageHandlerStack extends Stack {
       'AWS::CloudFormation::Interface': {
         ParameterGroups: [
           {
+            Label: { default: 'Sub Domain Name' },
+            Parameters: [subDomainNameParameter.logicalId]
+          },
+          {
+            Label: { default: 'Base Domain Name' },
+            Parameters: [baseDomainNameParameter.logicalId]
+          },
+         {
             Label: { default: 'CORS Options' },
             Parameters: [corsEnabledParameter.logicalId, corsOriginParameter.logicalId]
           },
@@ -230,6 +255,8 @@ export class ServerlessImageHandlerStack extends Stack {
           }
         ],
         ParameterLabels: {
+          [subDomainNameParameter.logicalId]: { default: 'Sub-Domain Name' },
+          [baseDomainNameParameter.logicalId]: { default: 'Base Domain Name' },
           [corsEnabledParameter.logicalId]: { default: 'CORS Enabled' },
           [corsOriginParameter.logicalId]: { default: 'CORS Origin' },
           [sourceBucketsParameter.logicalId]: { default: 'Source Buckets' },
@@ -248,7 +275,7 @@ export class ServerlessImageHandlerStack extends Stack {
     };
 
     /* eslint-disable no-new */
-    new CfnOutput(this, 'DomainName', { value: backEnd.domainName, description: 'Domain of the underlying CloudFront distribtion' });
+    new CfnOutput(this, 'DomainName', { value: backEnd.domainName, description: 'Domain of the underlying CloudFront distribution', exportName: 'domainName' });
     new CfnOutput(this, 'ApiEndpoint', { value: `https://${backEnd.domainName}`, description: 'Link to API endpoint for sending image requests to.' });
     new CfnOutput(this, 'DemoUrl', {
       value: `https://${frontEnd.domainName}/index.html`,

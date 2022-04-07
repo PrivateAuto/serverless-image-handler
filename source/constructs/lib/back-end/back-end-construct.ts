@@ -13,8 +13,6 @@ import { CloudFrontToApiGatewayToLambda } from '@aws-solutions-constructs/aws-cl
 import * as cloudfront from '@aws-cdk/aws-cloudfront';
 import { addCfnSuppressRules } from '../../utils/utils';
 import { SolutionConstructProps } from '../types';
-import { HostedZone } from '@aws-cdk/aws-route53';
-import { DnsValidatedCertificate } from '@aws-cdk/aws-certificatemanager';
 
 export interface BackEndProps extends SolutionConstructProps {
   readonly solutionVersion: string;
@@ -25,8 +23,6 @@ export interface BackEndProps extends SolutionConstructProps {
   readonly logsBucket: IBucket;
   readonly uuid: string;
   readonly cloudFrontPriceClass: string;
-  readonly subDomainName: string;
-  readonly baseDomainName: string;
 }
 
 export class BackEnd extends Construct {
@@ -130,24 +126,6 @@ export class BackEnd extends Construct {
       originSslProtocols: [OriginSslPolicy.TLS_V1_1, OriginSslPolicy.TLS_V1_2]
     });
 
-    const addProps: any = {};
-    if (props.subDomainName.trim().length > 0 && props.baseDomainName.trim().length > 0) {
-      console.log(`sub: ${props.subDomainName} base: ${props.baseDomainName}`);
-      const hostedZone = HostedZone.fromHostedZoneAttributes(this, `imported-zone-images-cdn`, {
-        hostedZoneId: 'Z01514342XRAVNZ06MTDD',
-        zoneName: props.baseDomainName
-      });
-      const certificate = new DnsValidatedCertificate(this, `cdn-images-imported-certificate`, {
-        domainName: props.baseDomainName,
-        hostedZone,
-        region: Aws.REGION,
-        subjectAlternativeNames: [`*.${props.baseDomainName}`]
-      });
-      const domainNames = props.subDomainName && props.baseDomainName ? [[props.subDomainName, props.baseDomainName].join('.')] : [];
-      addProps['domainNames'] = domainNames;
-      addProps['certificate'] = certificate;
-    }
-
     const cloudFrontDistributionProps: DistributionProps = {
       comment: 'Image Handler Distribution for Serverless Image Handler',
       defaultBehavior: {
@@ -168,7 +146,6 @@ export class BackEnd extends Construct {
         { httpStatus: 503, ttl: Duration.minutes(10) },
         { httpStatus: 504, ttl: Duration.minutes(10) }
       ],
-      ...addProps
     };
 
     const logGroupProps = {

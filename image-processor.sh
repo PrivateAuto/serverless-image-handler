@@ -1,14 +1,21 @@
 
 export MAIN_DIRECTORY=$PWD
 
-export REGION=us-east-2
-export BUCKET_PREFIX=pa-build-cache-ops
-export BUCKET_NAME=$BUCKET_PREFIX-$REGION 
-export SOLUTION_NAME=PrivateAutoImageProcessing
-export VERSION=1.0.2
+if [ -z "${AWS_REGION}" ] ; then
+  echo "AWS_REGION must be set."
+  exit -1
+fi
+
+if [ -z "${ENV_NAME}" ] ; then
+  echo "ENV_NAME must be set (ops, dev, qa, live)."
+  exit -1
+fi
 
 export AWS_ACCOUNTNO=`aws sts get-caller-identity --query Account --output text`
-export AWS_REGION=$REGION
+export BUCKET_PREFIX=pa-build-cache-${ENV_NAME}
+export BUCKET_NAME=$BUCKET_PREFIX-$AWS_REGION 
+export SOLUTION_NAME=PrivateAutoImageProcessing
+export VERSION=1.0.2
 
 cd $MAIN_DIRECTORY/deployment
 chmod +x run-unit-tests.sh

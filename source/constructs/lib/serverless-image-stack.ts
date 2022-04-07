@@ -9,8 +9,6 @@ import { BackEnd } from './back-end/back-end-construct';
 import { CommonResources } from './common-resources/common-resources-construct';
 import { FrontEndConstruct as FrontEnd } from './front-end/front-end-construct';
 import { SolutionConstructProps, YesNo } from './types';
-import process from 'process';
-
 
 export interface ServerlessImageHandlerStackProps extends StackProps {
   readonly env: Environment;
@@ -25,18 +23,6 @@ export interface ServerlessImageHandlerStackProps extends StackProps {
 export class ServerlessImageHandlerStack extends Stack {
   constructor(scope: Construct, id: string, props: ServerlessImageHandlerStackProps) {
     super(scope, id, props);
-
-    const subDomainNameParameter = new CfnParameter(this, 'SubDomainNameParameter', {
-      type: 'String',
-      description: `subdomain for the Alternate domain name for the distribution.`,
-      default: ''
-    });
-
-    const baseDomainNameParameter = new CfnParameter(this, 'BaseDomainNameParameter', {
-      type: 'String',
-      description: `Base domain for the Alternate domain name for the distribution.`,
-      default: ''
-    });
 
     const corsEnabledParameter = new CfnParameter(this, 'CorsEnabledParameter', {
       type: 'String',
@@ -144,8 +130,6 @@ export class ServerlessImageHandlerStack extends Stack {
     const sourceCodeKeyPrefix = solutionMapping.findInMap('Config', 'S3KeyPrefix');
 
     const solutionConstructProps: SolutionConstructProps = {
-      subDomainName: subDomainNameParameter.valueAsString,
-      baseDomainName: baseDomainNameParameter.valueAsString,      
       corsEnabled: corsEnabledParameter.valueAsString,
       corsOrigin: corsOriginParameter.valueAsString,
       sourceBuckets: sourceBucketsParameter.valueAsString,
@@ -211,14 +195,6 @@ export class ServerlessImageHandlerStack extends Stack {
     this.templateOptions.metadata = {
       'AWS::CloudFormation::Interface': {
         ParameterGroups: [
-          {
-            Label: { default: 'Sub Domain Name' },
-            Parameters: [subDomainNameParameter.logicalId]
-          },
-          {
-            Label: { default: 'Base Domain Name' },
-            Parameters: [baseDomainNameParameter.logicalId]
-          },
          {
             Label: { default: 'CORS Options' },
             Parameters: [corsEnabledParameter.logicalId, corsOriginParameter.logicalId]
@@ -255,8 +231,6 @@ export class ServerlessImageHandlerStack extends Stack {
           }
         ],
         ParameterLabels: {
-          [subDomainNameParameter.logicalId]: { default: 'Sub-Domain Name' },
-          [baseDomainNameParameter.logicalId]: { default: 'Base Domain Name' },
           [corsEnabledParameter.logicalId]: { default: 'CORS Enabled' },
           [corsOriginParameter.logicalId]: { default: 'CORS Origin' },
           [sourceBucketsParameter.logicalId]: { default: 'Source Buckets' },

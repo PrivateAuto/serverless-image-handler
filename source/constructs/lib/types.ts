@@ -3,8 +3,6 @@
 
 export type YesNo = 'Yes' | 'No';
 export interface SolutionConstructProps {
-  readonly subDomainName: string;
-  readonly baseDomainName: string;
   readonly corsEnabled: string;
   readonly corsOrigin: string;
   readonly sourceBuckets: string;

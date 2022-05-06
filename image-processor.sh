@@ -15,7 +15,7 @@ export AWS_ACCOUNTNO=`aws sts get-caller-identity --query Account --output text`
 export BUCKET_PREFIX=pa-build-cache-${ENV_NAME}
 export BUCKET_NAME=$BUCKET_PREFIX-$AWS_REGION 
 export SOLUTION_NAME=PrivateAutoImageProcessing
-export VERSION=1.0.2
+export VERSION=1.0.3
 
 cd $MAIN_DIRECTORY/deployment
 chmod +x run-unit-tests.sh

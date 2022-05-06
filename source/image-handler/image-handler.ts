@@ -102,7 +102,7 @@ export class ImageHandler {
               const imageBuffer = await originalImage.toBuffer();
               const resizeOptions: ResizeOptions = edits.resize;
   
-              imageMetadata = await sharp(imageBuffer).resize(resizeOptions).metadata();
+              imageMetadata = await sharp(imageBuffer).rotate().resize(resizeOptions).metadata();
             }
 
             const { bucket, key, options } = edits.frameWith;

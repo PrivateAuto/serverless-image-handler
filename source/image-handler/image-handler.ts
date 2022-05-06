@@ -36,6 +36,16 @@ export class ImageHandler {
           : sharp(originalImage, { failOnError: false }).withMetadata();
       }
 
+      if (edits.resize) {
+        // rotate image resize if the orientation is set
+        const metadata = await sharp(originalImage, { failOnError: false }).metadata();
+        if(metadata.orientation >= 5) {
+          const { height, width } = edits.resize;
+          edits.resize.width = height;
+          edits.resize.height = width;
+        }
+      }
+
       if (edits.frameWith !== undefined && edits.frameWith !== null) {
         edits.frameWith.bucket  = imageRequestInfo.bucket;
         edits.frameWith.key  = imageRequestInfo.key;
@@ -97,12 +107,11 @@ export class ImageHandler {
           case 'frameWith': {            
             // const originalMetadata: sharp.Metadata = await originalImage.metadata();
             let imageMetadata: sharp.Metadata = await originalImage.metadata();
-
             if (edits.resize) {
               const imageBuffer = await originalImage.toBuffer();
               const resizeOptions: ResizeOptions = edits.resize;
   
-              imageMetadata = await sharp(imageBuffer).rotate().resize(resizeOptions).metadata();
+              imageMetadata = await sharp(imageBuffer).resize(resizeOptions).metadata();
             }
 
             const { bucket, key, options } = edits.frameWith;

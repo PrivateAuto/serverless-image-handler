@@ -111,7 +111,7 @@ export class ImageHandler {
               const imageBuffer = await originalImage.toBuffer();
               const resizeOptions: ResizeOptions = edits.resize;
   
-              imageMetadata = await sharp(imageBuffer).resize(resizeOptions).metadata();
+              imageMetadata = await sharp(imageBuffer, { failOnError: false }).resize(resizeOptions).metadata();
             }
 
             const { bucket, key, options } = edits.frameWith;
@@ -129,12 +129,12 @@ export class ImageHandler {
             const imageBuffer = await originalImage.toBuffer();
             const resizeOptions: ResizeOptions = edits.resize;
 
-            imageMetadata = await sharp(imageBuffer).resize(resizeOptions).metadata();
+            imageMetadata = await sharp(imageBuffer, { failOnError: false }).resize(resizeOptions).metadata();
           }
 
           const { bucket, key, wRatio, hRatio, alpha, options } = edits.overlayWith;
           const overlay = await this.getOverlayImage(bucket, key, wRatio, hRatio, alpha, imageMetadata);
-          const overlayMetadata = await sharp(overlay).metadata();
+          const overlayMetadata = await sharp(overlay, { failOnError: false }).metadata();
           const overlayOption: OverlayOptions = { ...options, input: overlay };
 
           if (options) {
@@ -223,7 +223,7 @@ export class ImageHandler {
             const overlayOptions: OverlayOptions[] = [{ input: ellipse, blend: 'dest-in' }];
 
             const data = await originalImage.composite(overlayOptions).toBuffer();
-            originalImage = sharp(data).withMetadata().trim();
+            originalImage = sharp(data, { failOnError: false }).withMetadata().trim();
           }
           break;
         }
@@ -315,7 +315,7 @@ export class ImageHandler {
       // If alpha is not within 0-100, the default alpha is 0 (fully opaque).
       const alphaValue = zeroToHundred.test(alpha) ? parseInt(alpha) : 0;
       const imageBuffer = Buffer.isBuffer(overlayImage.Body) ? overlayImage.Body : Buffer.from(overlayImage.Body as Uint8Array);
-      return await sharp(imageBuffer)
+      return await sharp(imageBuffer, { failOnError: false })
         .resize(resizeOptions)
         .composite([
           {
